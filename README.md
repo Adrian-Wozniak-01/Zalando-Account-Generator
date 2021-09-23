@@ -2,6 +2,7 @@
 Simple Python Selenium Zalando Account Generator
 
 By default you should have chromedriver in the 'C:\Program Files (x86)\chromedriver.exe'
+Imput your proxies into proxy.txt file
 
 Download:
 https://chromedriver.chromium.org/downloads
