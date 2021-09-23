@@ -1,3 +1,8 @@
+# TO DO
+# Get emails from txt file
+# Better error handling - create exceptions
+# Create GUI
+
 import random
 import string
 from colorama import Fore
@@ -12,6 +17,7 @@ from selenium.webdriver.chrome.options import Options
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from datetime import datetime
 from os import system
+from seleniumwire import webdriver
 system("title "+'KryptoN#2137 Zalando Account Generator')
 
 
@@ -24,6 +30,23 @@ def slow_type(element, text, delay=0.1):
 global email_list
 email_list = []
 
+global proxy_list
+proxy_list = []
+
+proxies = open("proxy.txt", "r")
+for x in proxies:
+    item = x.split(":")
+    proxy_host = item[0]
+    proxy_port = item[1]
+    proxy_login = item[2]
+    proxy_password = item[3].rstrip('\n')
+
+    proxy_list.append([proxy_host, proxy_port, proxy_login, proxy_password])
+
+
+# Show proxy list
+# print(proxy_list)
+
 
 def work():
 
@@ -33,7 +56,6 @@ def work():
     how_many = int(input('How many emails do you want: '))
     firstName = input('First name: ')
     lastName = input('Last name: ')
-    #discord_webhook = input('Input webhook or leave blank: ')
 
     def answer_1():
         global pass_choice, password_return, password_max_lenght, password_static_return
@@ -52,16 +74,29 @@ def work():
     answer_1()
     discord_webhook = input('Input webhook or leave blank: ')
 
-    for _ in range(how_many):
+    global i
+    i = 0
 
+    for _ in range(how_many):
+        i_proxy_list = proxy_list[i]
         global driver
         PATH = 'C:\\Program Files (x86)\\chromedriver.exe'
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_experimental_option(
             "excludeSwitches", ["enable-logging"])
         chrome_options.add_argument("--start-maximized")
-        driver = webdriver.Chrome(PATH, chrome_options=chrome_options)
 
+        options = {
+            'proxy': {
+                'http': f'http://{i_proxy_list[2]}:{i_proxy_list[3]}@{i_proxy_list[0]}:{i_proxy_list[1]}',
+                'https': f'http://{i_proxy_list[2]}:{i_proxy_list[3]}@{i_proxy_list[0]}:{i_proxy_list[1]}',
+                'no_proxy': 'localhost,127.0.0.1,dev_server:8080'
+            }}
+        driver = webdriver.Chrome(
+            PATH, chrome_options=chrome_options, seleniumwire_options=options)
+
+        # next time use new proxy
+        i += 1
         email_number = random.randint(email_min_lenght, email_max_lenght)
         email = ''.join(random.choice(string.ascii_letters)
                         for x in range(email_number))
@@ -74,6 +109,8 @@ def work():
                 string.ascii_letters) for x in range(password_number))
         else:
             password_return = password_static_return
+        print(
+            f'http://{i_proxy_list[2]}:{i_proxy_list[3]}@{i_proxy_list[0]}:{i_proxy_list[1]}')
 
         driver.get("https://www.zalando.pl/login/?view=register")
         start = time.time()
@@ -81,7 +118,7 @@ def work():
         register = WebDriverWait(driver, 3, 1).until(
             lambda d: d.find_element_by_xpath("/html/body/div[1]/div/section/div/div[2]/div/button/span"))
         register.click()
-        #while True: pass
+        # while True: pass
 
         first_name = WebDriverWait(driver, 3, 1).until(lambda d: d.find_element_by_xpath(
             "/html/body/div[1]/div/section/div/div[2]/div/div/div/form/div[1]/div/div/input"))
@@ -178,5 +215,5 @@ with open('zalando_email_out.txt', 'a') as f:
     for email in email_list:
         f.write(email+":"+password_static_return+'\n')
 
-
+# Discord:
 # KryptoN#2137
